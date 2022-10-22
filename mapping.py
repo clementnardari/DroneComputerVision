@@ -1,7 +1,9 @@
 import KeyPressModule as kp
 from djitellopy import tello
-from time import sleep 
+import time 
 import numpy as np
+import cv2
+
 
 ###### Parameters #######
 fSpeed=117/10 # Forward speed in cm/s measured (15cm/s)
@@ -31,15 +33,19 @@ def getKeyboardInput():
     if kp.getKey("UP"): fb=speed
     elif kp.getKey("DOWN"): fb=-speed
 
-    if kp.getKey("w"): ud=-speed
+    if kp.getKey("w"): ud=speed
     elif kp.getKey("s"): ud=-speed
 
     if kp.getKey("a"): yv=speed
     elif kp.getKey("d"): yv=-speed
 
-    if kp.getKey("q"): yv=me.land()
+    if kp.getKey("q"): me.land(); time.sleep(3)
 
-    if kp.getKey("e"): yv=me.takeoff()
+    if kp.getKey("e"): me.takeoff()
+
+    if kp.getKey("z"):
+        cv2.imwrite(f'Resources/Images/{time.time()}.jpg',img)
+        time.sleep(0.3)
 
     return [lr,fb,ud,yv]
 
