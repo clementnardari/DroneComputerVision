@@ -17,10 +17,10 @@ time.sleep(2.2)
 
 
 #picture area forward and backward range
-fbRange = [6200, 6800]
+fbRange = [6200, 6700]
 #propotionnal, integral, derivative controler parameters
 pid=[0.4,0.4,0]
-pError = 0
+pError = [0,0]
 #image size
 w,h=360,240
 def findFace(img):
@@ -47,15 +47,19 @@ def findFace(img):
     else:
         return img, [[0,0],0]
 
-def trackFace(me,info,w,pid,pError):
+def trackFace(me,info,w,h,pid,pError):
     
     area=info[1]
     x,y=info[0]
     fb=0
-    error=x- w//2
-    speed=pid[0]*error + pid[1]* (error-pError)
+    error_x=x- w//2
+    error_y=y- h//2
+
+    speed=pid[0]*error_x + pid[1]* (error_x-pError[0])
+    ud=-pid[0]*error_y - pid[1]* (error_y-pError[1])
     #cap the max speed to avoid dangerous conditions
     speed= int(np.clip(speed,-100,100))
+    ud= int(np.clip(ud,-25,25))
 
 
 
@@ -71,11 +75,12 @@ def trackFace(me,info,w,pid,pError):
     # if nothing detected:
     if x==0:
         speed=0
-        error=0
+        ud=0
+        error_x,error_y=0,0
 
-    me.send_rc_control(0,fb,0,speed)
+    me.send_rc_control(0,fb,ud,speed)
 
-    return error
+    return [error_x,error_y]
 
 #cap =cv2.VideoCapture(0)
 while True:
@@ -83,7 +88,7 @@ while True:
     img = me.get_frame_read().frame
     img=cv2.resize(img,(w,h))
     img,info = findFace(img)
-    pError= trackFace(me,info,w,pid,pError)
+    pError= trackFace(me,info,w,h,pid,pError)
     #print(f'Center: {info[0]} | Area: {info[1]}')
 
     cv2.imshow('Output',img)
